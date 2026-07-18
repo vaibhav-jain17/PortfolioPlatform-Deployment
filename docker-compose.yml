@@ -1,0 +1,78 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: portfolio-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SQL_SA_PASSWORD}
+      MSSQL_PID: Express
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - portfolio-net
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  airuntime:
+    build:
+      context: ../PortfolioPlatform-AI
+      dockerfile: Dockerfile
+    container_name: portfolio-airuntime
+    networks:
+      - portfolio-net
+
+  api:
+    build:
+      context: ../PortfolioPlatform-Backend
+      dockerfile: Dockerfile
+    container_name: portfolio-api
+    environment:
+      ConnectionStrings__Default: "Server=sqlserver;Database=PortfolioDb;User Id=sa;Password=${SQL_SA_PASSWORD};TrustServerCertificate=True"
+      Jwt__Key: ${JWT_KEY}
+      AiRuntime__BaseUrl: "http://airuntime:8000"
+      Cors__AllowedOrigins: "https://vaibhavjain.dev"
+      Admin__Email: ${ADMIN_EMAIL}
+      Admin__Password: ${ADMIN_PASSWORD}
+      Admin__Role: ${ADMIN_ROLE}
+    networks:
+      - portfolio-net
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ../PortfolioPlatform-Frontend
+      dockerfile: Dockerfile
+    container_name: portfolio-frontend
+    environment:
+      API_BASE_URL: "/api"
+      AI_BASE_URL: "/api/ai"
+      USE_MOCKS: "false"
+      PRODUCTION: "true"
+    networks:
+      - portfolio-net
+
+  nginx:
+    image: nginx:alpine
+    container_name: portfolio-nginx
+    ports:
+      - "8081:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - frontend
+      - api
+    networks:
+      - portfolio-net
+
+networks:
+  portfolio-net:
+    driver: bridge
+
+volumes:
+  sqlserver_data:
