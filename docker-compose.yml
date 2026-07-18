@@ -38,6 +38,9 @@ services:
       Admin__Email: ${ADMIN_EMAIL}
       Admin__Password: ${ADMIN_PASSWORD}
       Admin__Role: ${ADMIN_ROLE}
+    volumes:
+      - uploads_data:/app/wwwroot/uploads
+      - dataprotection_keys:/root/.aspnet/DataProtection-Keys
     networks:
       - portfolio-net
     depends_on:
@@ -76,3 +79,5 @@ networks:
 
 volumes:
   sqlserver_data:
+  uploads_data:
+  dataprotection_keys:
