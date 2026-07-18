@@ -31,7 +31,7 @@ services:
       dockerfile: Dockerfile
     container_name: portfolio-api
     environment:
-      ConnectionStrings__Default: "Server=sqlserver;Database=PortfolioDb;User Id=sa;Password=${SQL_SA_PASSWORD};TrustServerCertificate=True"
+      ConnectionStrings__Default: "Server=sqlserver;Database=PortfolioDB;User Id=sa;Password=${SQL_SA_PASSWORD};TrustServerCertificate=True"
       Jwt__Key: ${JWT_KEY}
       AiRuntime__BaseUrl: "http://airuntime:8000"
       Cors__AllowedOrigins: "https://vaibhavjain.dev"
