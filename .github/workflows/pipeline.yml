@@ -1,9 +1,10 @@
-name: CI
+name: Pipeline
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build:
@@ -46,3 +47,27 @@ jobs:
           ADMIN_PASSWORD: DummyBuild123!
           ADMIN_ROLE: Admin
         run: docker compose build
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Deploy to production
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: /opt/portfolio/deploy.sh
+
+      - name: Verify deployment is actually healthy
+        run: |
+          sleep 10
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://vaibhavjain.dev/api/projects)
+          if [ "$response" != "200" ]; then
+            echo "Health check failed - got HTTP $response instead of 200"
+            exit 1
+          fi
+          echo "Health check passed - site is responding correctly"
