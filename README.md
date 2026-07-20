@@ -10,6 +10,9 @@ directories and built as part of `docker compose build`:
 - [PortfolioPlatform-Backend](https://github.com/vaibhav-jain17/PortfolioPlatform-Backend) — ASP.NET Core API
 - [PortfolioPlatform-AI](https://github.com/vaibhav-jain17/PortfolioPlatform-AI) — FastAPI inference runtime
 
+> This code is publicly viewable for portfolio and demonstration purposes.
+> All rights reserved — no license is granted for reuse, modification, or redistribution.
+
 ## Architecture
 
 ```mermaid
