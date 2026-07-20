@@ -140,3 +140,22 @@ docker compose run --rm --entrypoint certbot certbot certonly --webroot \
 with nginx) so the actual `certbot` binary runs instead.
 
 then set `NGINX_CONF_FILE=nginx.prod.conf` and restart the `nginx` service.
+
+## CI/CD Pipeline
+
+Pushes to `main` (or a manual trigger) run a two-stage GitHub Actions pipeline
+defined in [.github/workflows/pipeline.yml](.github/workflows/pipeline.yml):
+
+1. **Build** — checks out this repo and the three sibling repos, validates
+   `docker-compose.yml`, and builds all three custom service images
+   (frontend, API, AI runtime) to confirm they compile cleanly.
+2. **Deploy** — gated behind a required manual approval (a GitHub
+   Environment named `production`). Once approved, it SSHes into the
+   production VPS using a dedicated deploy key and runs
+   [scripts/deploy.sh](scripts/deploy.sh), which pulls the latest code
+   across all four repos, rebuilds and restarts the stack, and explicitly
+   restarts nginx to avoid serving stale upstream DNS for a recreated
+   container. A final health check hits `/api/projects` over the real
+   public domain to confirm the full stack — not just the containers,
+   but Nginx, the API, and the database — is genuinely responding
+   correctly before the pipeline is marked successful.
