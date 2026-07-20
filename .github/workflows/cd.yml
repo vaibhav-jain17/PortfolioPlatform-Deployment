@@ -15,3 +15,13 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: /opt/portfolio/deploy.sh
+
+      - name: Verify deployment is actually healthy
+        run: |
+          sleep 10
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://vaibhavjain.dev/api/projects)
+          if [ "$response" != "200" ]; then
+            echo "Health check failed - got HTTP $response instead of 200"
+            exit 1
+          fi
+          echo "Health check passed - site is responding correctly"
