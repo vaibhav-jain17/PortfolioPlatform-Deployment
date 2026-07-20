@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Deployment repo
+        uses: actions/checkout@v7
+        with:
+          path: PortfolioPlatform-Deployment
+
+      - name: Checkout Frontend repo
+        uses: actions/checkout@v7
+        with:
+          repository: vaibhav-jain17/PortfolioPlatform-Frontend
+          path: PortfolioPlatform-Frontend
+
+      - name: Checkout Backend repo
+        uses: actions/checkout@v7
+        with:
+          repository: vaibhav-jain17/PortfolioPlatform-Backend
+          path: PortfolioPlatform-Backend
+
+      - name: Checkout AI repo
+        uses: actions/checkout@v7
+        with:
+          repository: vaibhav-jain17/PortfolioPlatform-AI
+          path: PortfolioPlatform-AI
+
+      - name: Validate Compose file
+        working-directory: PortfolioPlatform-Deployment
+        run: docker compose config
+
+      - name: Build all service images
+        working-directory: PortfolioPlatform-Deployment
+        env:
+          SQL_SA_PASSWORD: DummyBuild123!
+          JWT_KEY: dummy-build-time-key-not-used-for-anything-real-x
+          ADMIN_EMAIL: dummy@example.com
+          ADMIN_PASSWORD: DummyBuild123!
+          ADMIN_ROLE: Admin
+        run: docker compose build
